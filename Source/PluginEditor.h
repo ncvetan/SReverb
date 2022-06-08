@@ -29,6 +29,10 @@ struct RotarySliderWithLabels : juce::Slider {
 
     void paint(juce::Graphics& g) override;
 
+    void createInnerArc(juce::Graphics& g, const juce::Rectangle<float> &bounds, float arcWidth, float arcRadius, float startAngle, float endAngle);
+
+    void createTick(juce::Graphics& g, const juce::Rectangle<float>& bounds, int tickWidth, float sliderPosProportional, float rotaryStartAngle, float rotaryEndAngle);
+
     void drawSliderText(juce::Graphics& g);
 
     juce::Rectangle<int> getSliderBounds() const;

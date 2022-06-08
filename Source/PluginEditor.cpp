@@ -15,34 +15,12 @@ void RotaryLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
         g.setColour(rotarySlider->getPrimaryColour());
         g.fillEllipse(bounds);
 
-        Path innerArc;
-        auto radius = jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
-        auto arcWidth = 6.0f;
-        auto arcRadius = radius - arcWidth * 0.5f - 4;
-        
-        innerArc.addCentredArc(centre.getX(), centre.getY(), arcRadius, arcRadius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
+        // Creating the arc that the tick is bound to
+        rotarySlider->createInnerArc(g, bounds, 6.0f, 4, rotaryStartAngle, rotaryEndAngle);
+        // Creating the tick that indicates the angle of the slider
+        rotarySlider->createTick(g, bounds, 8, sliderPosProportional, rotaryStartAngle, rotaryEndAngle);
 
-        g.setColour(rotarySlider->getSecondaryColour());
-        g.strokePath(innerArc, PathStrokeType(arcWidth, PathStrokeType::curved, PathStrokeType::rounded));
-   
-        Path tick;
-        Rectangle<float> tickBounds;
-        int tickWidth = 8;
-        tickBounds.setLeft(centre.getX() - tickWidth/2);
-        tickBounds.setRight(centre.getX() + tickWidth/2);
-        tickBounds.setTop(bounds.getY() + tickWidth/2);
-        tickBounds.setBottom(bounds.getY() + 4 + tickWidth);
-        tick.addEllipse(tickBounds);
-
-        auto sliderAngleRad = jmap(sliderPosProportional, 0.0f, 1.0f,
-            rotaryStartAngle, rotaryEndAngle);
-        
-        tick.applyTransform(AffineTransform().rotated(sliderAngleRad, centre.getX(),
-            centre.getY()));
-        
-        g.setColour(juce::Colours::white);
-        g.fillPath(tick);
-
+        // Generating text that displays the current value of the parameter
         Rectangle<float> textBounds;
         g.setFont(rotarySlider->getTextHeight());
         auto text = rotarySlider->getDisplayValue();
@@ -51,6 +29,39 @@ void RotaryLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
         textBounds.setCentre(centre);
         g.drawFittedText(text, textBounds.toNearestInt(), juce::Justification::centred, 1);
     }
+}
+
+void RotarySliderWithLabels::createInnerArc(juce::Graphics& g, const juce::Rectangle<float> &bounds, float arcWidth, float arcRadius, float startAngle, float endAngle)
+{
+    juce::Path innerArc;
+    auto centre = bounds.getCentre();
+    auto radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
+    arcRadius = radius - arcWidth * 0.5f - arcRadius;
+    innerArc.addCentredArc(centre.getX(), centre.getY(), arcRadius, arcRadius, 0.0f, startAngle, endAngle, true);
+    g.setColour(this->getSecondaryColour());
+    g.strokePath(innerArc, juce::PathStrokeType(arcWidth, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+}
+
+void RotarySliderWithLabels::createTick(juce::Graphics &g, const juce::Rectangle<float> &bounds, int tickWidth, float sliderPosProportional, float rotaryStartAngle, float rotaryEndAngle)
+{
+    juce::Path tick;
+    juce::Rectangle<float> tickBounds;
+    auto centre = bounds.getCentre();
+
+    tickBounds.setLeft(centre.getX() - tickWidth / 2);
+    tickBounds.setRight(centre.getX() + tickWidth / 2);
+    tickBounds.setTop(bounds.getY() + tickWidth / 2);
+    tickBounds.setBottom(bounds.getY() + 4 + tickWidth);
+    tick.addEllipse(tickBounds);
+
+    auto sliderAngleRad = juce::jmap(sliderPosProportional, 0.0f, 1.0f,
+        rotaryStartAngle, rotaryEndAngle);
+
+    tick.applyTransform(juce::AffineTransform().rotated(sliderAngleRad, centre.getX(),
+        centre.getY()));
+
+    g.setColour(juce::Colours::white);
+    g.fillPath(tick);
 }
 
 void RotarySliderWithLabels::paint(juce::Graphics & g)
